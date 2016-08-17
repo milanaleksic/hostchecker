@@ -18,5 +18,7 @@ func main() {
 			fmt.Printf("%d. %s\n", index+1, failure.String())
 		}
 		os.Exit(1)
+	} else {
+		fmt.Println("\n\nNo violations found")
 	}
 }
