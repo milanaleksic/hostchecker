@@ -5,8 +5,6 @@ import (
 	"os"
 )
 
-// TODO: check age of JARs
-
 func main() {
 	expectations := readExpectationsFromJSON()
 
