@@ -1,3 +1,6 @@
 [submodule "gomakefiles"]
 	path = gomakefiles
 	url = https://github.com/milanaleksic/gomakefiles.git
+[submodule "vendor/golang.org/x/crypto"]
+	path = vendor/golang.org/x/crypto
+	url = https://go.googlesource.com/crypto
