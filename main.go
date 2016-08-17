@@ -8,13 +8,11 @@ import (
 // TODO: check age of JARs
 
 func main() {
-	expectations := readExpectationsFromJson()
+	expectations := readExpectationsFromJSON()
 
 	var failures []failure
 	for _, expectation := range expectations {
-		for _, f := range checkServer(expectation) {
-			failures = append(failures, f)
-		}
+		failures = append(failures, checkServer(expectation)...)
 	}
 	if len(failures) > 0 {
 		fmt.Println("\n\nFollowing violations are present:")

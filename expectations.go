@@ -14,7 +14,7 @@ type expectation struct {
 	CustomServices  []*customService `json:"custom"`
 }
 
-func readExpectationsFromJson() []expectation {
+func readExpectationsFromJSON() []expectation {
 	var target []expectation
 	filename := "expectations.json"
 	data, err := ioutil.ReadFile(filename)

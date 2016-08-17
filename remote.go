@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"errors"
 )
 
 var (
@@ -25,7 +24,7 @@ func executeRemoteCommand(client *ssh.Client, command string) (string, error) {
 	var b bytes.Buffer
 	session.Stdout = &b
 	if err := session.Run(command); err != nil {
-		return "", errors.New(fmt.Sprintf("Failed to run: %s, err=%s", command, err.Error()))
+		return "", fmt.Errorf("Failed to run: %s, err=%s", command, err.Error())
 	}
 	return strings.TrimSpace(b.String()), nil
 }
@@ -44,6 +43,13 @@ func checkServer(expec expectation) (failures []failure) {
 	}
 
 	fmt.Printf("\nChecking services on host %s\n", expec.Server)
+	failures = append(failures, checkUpstartServices(expec, client)...)
+	failures = append(failures, checkCustomServices(expec, client)...)
+
+	return
+}
+
+func checkUpstartServices(expec expectation, client *ssh.Client) (failures []failure) {
 	for _, upstartService := range expec.UpstartServices {
 		fmt.Printf("Checking upstart service %s\n", upstartService.Name)
 		app, err := executeRemoteCommand(client, fmt.Sprintf(`status %s`, upstartService.Name))
@@ -77,8 +83,11 @@ func checkServer(expec expectation) (failures []failure) {
 		upstartService.checkUser(user)
 		upstartService.checkPorts(client, pid)
 		upstartService.checkOld(elapsedTime)
-
 	}
+	return
+}
+
+func checkCustomServices(expec expectation, client *ssh.Client) (failures []failure) {
 	for _, customService := range expec.CustomServices {
 		fmt.Printf("Checking custom service %s\n", customService.Name)
 
