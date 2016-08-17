@@ -10,8 +10,8 @@ type expectation struct {
 	Server          string `json:"server"`
 	User            string `json:"user"`
 	Password        string  `json:"password"`
-	UpstartServices []service `json:"upstart"`
-	CustomServices  []customService `json:"custom"`
+	UpstartServices []*service `json:"upstart"`
+	CustomServices  []*customService `json:"custom"`
 }
 
 func readExpectationsFromJson() []expectation {
@@ -24,6 +24,14 @@ func readExpectationsFromJson() []expectation {
 		err := json.Unmarshal(data, &target)
 		if err != nil {
 			fmt.Printf("Could not parse data from file filename=%v, err=%v\n", filename, err)
+		}
+	}
+	for _, e := range target {
+		for _, s := range e.UpstartServices {
+			s.Server = e.Server
+		}
+		for _, s := range e.CustomServices {
+			s.Server = e.Server
 		}
 	}
 	return target

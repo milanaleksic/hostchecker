@@ -10,6 +10,7 @@ type service struct {
 	User             string `json:"user"`
 	NewerThanSeconds int `json:"newerThanSeconds"`
 	Ports            []int  `json:"ports"`
+	Server           string
 }
 
 type customService struct {
@@ -17,34 +18,49 @@ type customService struct {
 	Regex string `json:"regex"`
 }
 
-func (s *service) checkPorts(client *ssh.Client, pid string) {
+func (s *service) newFailure(format string, args ...interface{}) *failure {
+	return &failure{
+		serviceName: s.Name,
+		server: s.Server,
+		msg: fmt.Sprintf(format, args...),
+	}
+}
+
+func (s *service) checkPorts(client *ssh.Client, pid string) *failure {
 	for _, port := range s.Ports {
-		pidHoldingPort := executeRemoteCommand(client, fmt.Sprintf(`lsof -nP | grep :%d | grep LISTEN | awk '{print $2}'`, port))
-		if pidHoldingPort == "" {
-			log.Fatalf("Port %d is not being taken by any process", port)
+		pidHoldingPort, err := executeRemoteCommand(client, fmt.Sprintf(`lsof -nP | grep :%d | grep LISTEN | awk '{print $2}'`, port))
+		if err != nil {
+			return s.newFailure(err.Error())
+		} else if pidHoldingPort == "" {
+			return s.newFailure("Port %d is not being taken by any process", port)
 		}
 		if pidHoldingPort == pid {
 			continue
 		}
-		ppidHoldingPort := executeRemoteCommand(client, fmt.Sprintf(`cat /proc/%s/stat | awk '{print $4}'`, pidHoldingPort))
-		if ppidHoldingPort != pid {
-			log.Fatalf("Port %d is being taken by the process PID=%s. Neither that PID nor its parent (%s) is of the service %s (%s)",
-				port, pidHoldingPort, ppidHoldingPort, s.Name, pid)
+		ppidHoldingPort, err := executeRemoteCommand(client, fmt.Sprintf(`cat /proc/%s/stat | awk '{print $4}'`, pidHoldingPort))
+		if err != nil {
+			return s.newFailure(err.Error())
+		} else if ppidHoldingPort != pid {
+			return s.newFailure("Port %d is being taken by the process PID=%s. Neither that PID nor its parent (%s) is of the service (%s)",
+				port, pidHoldingPort, ppidHoldingPort, pid)
 		}
 	}
+	return nil
 }
 
-func (s *service) checkOld(elapsedTime string) {
+func (s *service) checkOld(elapsedTime string) *failure {
 	if s.NewerThanSeconds != 0 {
 		timeInSeconds := extractTimeInSeconds(elapsedTime)
 		if timeInSeconds > s.NewerThanSeconds {
-			log.Fatalf("Service %s is older than %d seconds (age is %d seconds)", s.Name, s.NewerThanSeconds, timeInSeconds)
+			return s.newFailure("Service is older than %d seconds (age is %d seconds)", s.NewerThanSeconds, timeInSeconds)
 		}
 	}
+	return nil
 }
 
-func (s *service) checkUser(user string) {
+func (s *service) checkUser(user string) *failure {
 	if user != s.User {
-		log.Fatalf("User is not correct for this service: %s != (expected) %s", user, s.User)
+		return s.newFailure("User is not correct for this service: %s != (expected) %s", user, s.User)
 	}
+	return nil
 }

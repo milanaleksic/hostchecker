@@ -1,32 +1,26 @@
 package main
 
 import (
-	"golang.org/x/crypto/ssh"
-	"bytes"
-	"flag"
-	"log"
-	"strings"
-	"regexp"
 	"fmt"
-	"io/ioutil"
-	"encoding/json"
-	"strconv"
+	"os"
 )
 
 // TODO: check age of JARs
 
 func main() {
-	explain := flag.Bool("explain", false, "application should explain expectations")
-	flag.Parse()
-
 	expectations := readExpectationsFromJson()
-	if *explain {
-		fmt.Printf("Expectations: %+v", expectations)
-		return
-	}
 
 	var failures []failure
 	for _, expectation := range expectations {
-		checkServer(expectation, failures)
+		for _, f := range checkServer(expectation) {
+			failures = append(failures, f)
+		}
+	}
+	if len(failures) > 0 {
+		fmt.Println("\n\nFollowing violations are present:")
+		for index, failure := range failures {
+			fmt.Printf("%d. %s\n", index+1, failure.String())
+		}
+		os.Exit(1)
 	}
 }
