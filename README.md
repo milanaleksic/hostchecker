@@ -1,5 +1,7 @@
 # Host Checker
 
+[![Build Status](https://semaphoreci.com/api/v1/milanaleksic/hostchecker/branches/master/badge.svg)](https://semaphoreci.com/milanaleksic/hostchecker)
+
 ## What it's all about
  
 This tiny CLI app verification of services. 
