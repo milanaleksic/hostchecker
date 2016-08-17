@@ -10,7 +10,7 @@ To run it, you have to have a file called `expectations.json` beside the app.
 
 ## expectations.json DSL
 
-```json
+```txt
 [
   {
     "server": "<server_location>:22",
