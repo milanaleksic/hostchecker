@@ -80,9 +80,15 @@ func checkUpstartServices(expec expectation, client *ssh.Client) (failures []fai
 		// (we know it already) pid := found[2]
 		elapsedTime := found[3]
 
-		upstartService.checkUser(user)
-		upstartService.checkPorts(client, pid)
-		upstartService.checkOld(elapsedTime)
+		if failure := upstartService.checkUser(user); failure != nil {
+			failures = append(failures, *failure)
+		}
+		if failure := upstartService.checkPorts(client, pid); failure != nil {
+			failures = append(failures, *failure)
+		}
+		if failure := upstartService.checkOld(elapsedTime); failure != nil {
+			failures = append(failures, *failure)
+		}
 	}
 	return
 }
@@ -104,9 +110,15 @@ func checkCustomServices(expec expectation, client *ssh.Client) (failures []fail
 		pid := found[2]
 		elapsedTime := found[3]
 
-		customService.checkUser(user)
-		customService.checkPorts(client, pid)
-		customService.checkOld(elapsedTime)
+		if failure := customService.checkUser(user); failure != nil {
+			failures = append(failures, *failure)
+		}
+		if failure := customService.checkPorts(client, pid); failure != nil {
+			failures = append(failures, *failure)
+		}
+		if failure := customService.checkOld(elapsedTime); failure != nil {
+			failures = append(failures, *failure)
+		}
 	}
 	return
 }
