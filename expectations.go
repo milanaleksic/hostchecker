@@ -12,6 +12,7 @@ type expectation struct {
 	Password        string  `json:"password"`
 	UpstartServices []*service `json:"upstart"`
 	CustomServices  []*customService `json:"custom"`
+	Responses	[]*response `json:"responses"`
 }
 
 func readExpectationsFromJSON() []expectation {
@@ -32,6 +33,9 @@ func readExpectationsFromJSON() []expectation {
 		}
 		for _, s := range e.CustomServices {
 			s.Server = e.Server
+		}
+		for _, r := range e.Responses {
+			r.Server = e.Server
 		}
 	}
 	return target

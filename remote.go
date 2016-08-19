@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"net/http"
+	"io/ioutil"
 )
 
 var (
@@ -45,6 +47,7 @@ func checkServer(expec expectation) (failures []failure) {
 	fmt.Printf("\nChecking services on host %s\n", expec.Server)
 	failures = append(failures, checkUpstartServices(expec, client)...)
 	failures = append(failures, checkCustomServices(expec, client)...)
+	failures = append(failures, checkResponses(expec)...)
 
 	return
 }
@@ -118,6 +121,45 @@ func checkCustomServices(expec expectation, client *ssh.Client) (failures []fail
 		}
 		if failure := customService.checkOld(elapsedTime); failure != nil {
 			failures = append(failures, *failure)
+		}
+	}
+	return
+}
+
+func checkResponses(expec expectation) (failures []failure) {
+	for _, response := range expec.Responses {
+		fmt.Printf("Checking Response %s\n", response.Name)
+
+		resp, err := http.Get(response.Url)
+		if err != nil {
+			failures = append(failures, *response.newFailure(err.Error()))
+			continue
+		}
+
+		codeFound := false;
+		for _, code := range response.Codes {
+			if code == resp.StatusCode {
+				codeFound = true
+				break
+			}
+		}
+		if !codeFound {
+			failures = append(failures, *response.newFailure("Code (%d) is not as expected (%+v)", resp.StatusCode, response.Codes))
+			continue
+		}
+
+		if response.Response != "" {
+			data, err := ioutil.ReadAll(resp.Body)
+			resp.Body.Close()
+			if err != nil {
+				failures = append(failures, *response.newFailure(err.Error()))
+				continue
+			}
+
+			if string(data) != response.Response {
+				failures = append(failures, *response.newFailure("Response (%s) is not as expected (%+v)", data, response.Response))
+				continue
+			}
 		}
 	}
 	return
