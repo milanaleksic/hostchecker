@@ -39,7 +39,20 @@ To run it, you have to have a file called `expectations.json` beside the app.
           9090// which port should be occupied by the service?
         ]
       }
-    ]
+    ],
+    // which URLs should be checked
+    "responses": [
+      {
+        "name": "Mongo response",
+        "url": "http://mongo_site:27017/",
+        // what codes are acceptable
+        "codes": [
+          200
+        ],
+        // optionally, check what is the response from the server
+        "response": "It looks like you are trying to access MongoDB over HTTP on the native driver port.\n"
+      }
+      ]
   },
  // ... other servers to be checked
 ]
