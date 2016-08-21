@@ -1,13 +1,14 @@
-package main
+package hostchecker
 
 import "fmt"
 
-type failure struct {
+// Failure is a representation of a failed constraint (aka Expectation)
+type Failure struct {
 	server      string
 	serviceName string
 	msg         string
 }
 
-func (f failure) String() string {
+func (f Failure) String() string {
 	return fmt.Sprintf("On server %s the service %s check failed with reason: %s", f.server, f.serviceName, f.msg)
 }

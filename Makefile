@@ -8,8 +8,10 @@ include gomakefiles/upx.mk
 SOURCES := $(shell find $(SOURCEDIR) -name '*.go' \
 	-not -path './vendor/*')
 
-${APP_NAME}: $(SOURCES)
-	go build -ldflags '-X main.Version=${TAG}' -o ${APP_NAME}
+$(APP_NAME): cmd/main/$(APP_NAME)
+
+cmd/main/$(APP_NAME): $(SOURCES)
+	cd cmd/main/ && go build -ldflags '-X main.Version=${VERSION}' -o ../../${APP_NAME}
 
 RELEASE_SOURCES := $(SOURCES)
 

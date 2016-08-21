@@ -1,11 +1,12 @@
-package main
+package hostchecker
 
 import (
 	"golang.org/x/crypto/ssh"
 	"fmt"
 )
 
-type service struct {
+// Service defines an Upstart service expectation (how recently it should have been started for example)
+type Service struct {
 	Name             string `json:"name"`
 	User             string `json:"user"`
 	NewerThanSeconds int `json:"newerThanSeconds"`
@@ -13,20 +14,21 @@ type service struct {
 	Server           string
 }
 
-type customService struct {
-	service
+// CustomService defines a process expectation which will be identified via `ps` query for a certain regex
+type CustomService struct {
+	Service
 	Regex string `json:"regex"`
 }
 
-func (s *service) newFailure(format string, args ...interface{}) *failure {
-	return &failure{
+func (s *Service) newFailure(format string, args ...interface{}) *Failure {
+	return &Failure{
 		serviceName: s.Name,
 		server: s.Server,
 		msg: fmt.Sprintf(format, args...),
 	}
 }
 
-func (s *service) checkPorts(client *ssh.Client, pid string) *failure {
+func (s *Service) checkPorts(client *ssh.Client, pid string) *Failure {
 	for _, port := range s.Ports {
 		pidHoldingPort, err := executeRemoteCommand(client, fmt.Sprintf(`lsof -nP | grep :%d | grep LISTEN | awk '{print $2}'`, port))
 		if err != nil {
@@ -48,7 +50,7 @@ func (s *service) checkPorts(client *ssh.Client, pid string) *failure {
 	return nil
 }
 
-func (s *service) checkOld(elapsedTime string) *failure {
+func (s *Service) checkOld(elapsedTime string) *Failure {
 	if s.NewerThanSeconds != 0 {
 		timeInSeconds := extractTimeInSeconds(elapsedTime)
 		if timeInSeconds > s.NewerThanSeconds {
@@ -58,7 +60,7 @@ func (s *service) checkOld(elapsedTime string) *failure {
 	return nil
 }
 
-func (s *service) checkUser(user string) *failure {
+func (s *Service) checkUser(user string) *Failure {
 	if user != s.User {
 		return s.newFailure("User is not correct for this service: %s != (expected) %s", user, s.User)
 	}

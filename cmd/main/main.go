@@ -3,14 +3,15 @@ package main
 import (
 	"fmt"
 	"os"
+	"github.com/milanaleksic/hostchecker"
 )
 
 func main() {
-	expectations := readExpectationsFromJSON()
+	expectations := hostchecker.ReadExpectationsFromJSON("expectations.json")
 
-	var failures []failure
+	var failures []hostchecker.Failure
 	for _, expectation := range expectations {
-		failures = append(failures, checkServer(expectation)...)
+		failures = append(failures, hostchecker.CheckServer(expectation)...)
 	}
 	if len(failures) > 0 {
 		fmt.Println("\n\nFollowing violations are present:")

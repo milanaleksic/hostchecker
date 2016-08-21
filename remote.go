@@ -1,4 +1,4 @@
-package main
+package hostchecker
 
 import (
 	"bytes"
@@ -31,7 +31,8 @@ func executeRemoteCommand(client *ssh.Client, command string) (string, error) {
 	return strings.TrimSpace(b.String()), nil
 }
 
-func checkServer(expec expectation) (failures []failure) {
+// CheckServer is a host verifier entry point: for a known expectation, provide failures if they exist
+func CheckServer(expec Expectation) (failures []Failure) {
 	config := &ssh.ClientConfig{
 		User: expec.User,
 		Auth: []ssh.AuthMethod{
@@ -52,7 +53,7 @@ func checkServer(expec expectation) (failures []failure) {
 	return
 }
 
-func checkUpstartServices(expec expectation, client *ssh.Client) (failures []failure) {
+func checkUpstartServices(expec Expectation, client *ssh.Client) (failures []Failure) {
 	for _, upstartService := range expec.UpstartServices {
 		fmt.Printf("Checking upstart service %s\n", upstartService.Name)
 		app, err := executeRemoteCommand(client, fmt.Sprintf(`status %s`, upstartService.Name))
@@ -96,7 +97,7 @@ func checkUpstartServices(expec expectation, client *ssh.Client) (failures []fai
 	return
 }
 
-func checkCustomServices(expec expectation, client *ssh.Client) (failures []failure) {
+func checkCustomServices(expec Expectation, client *ssh.Client) (failures []Failure) {
 	for _, customService := range expec.CustomServices {
 		fmt.Printf("Checking custom service %s\n", customService.Name)
 
@@ -126,11 +127,11 @@ func checkCustomServices(expec expectation, client *ssh.Client) (failures []fail
 	return
 }
 
-func checkResponses(expec expectation) (failures []failure) {
+func checkResponses(expec Expectation) (failures []Failure) {
 	for _, response := range expec.Responses {
 		fmt.Printf("Checking Response %s\n", response.Name)
 
-		resp, err := http.Get(response.Url)
+		resp, err := http.Get(response.URL)
 		if err != nil {
 			failures = append(failures, *response.newFailure(err.Error()))
 			continue

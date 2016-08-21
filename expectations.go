@@ -1,4 +1,4 @@
-package main
+package hostchecker
 
 import (
 	"fmt"
@@ -6,18 +6,21 @@ import (
 	"encoding/json"
 )
 
-type expectation struct {
+// Expectation is a definition of an expectation for a certain server.
+// Since SSH is used, one needs to provide the username and password to access the remote server,
+// as well as definitions of expectations: servies, expected URL responses etc
+type Expectation struct {
 	Server          string `json:"server"`
 	User            string `json:"user"`
 	Password        string  `json:"password"`
-	UpstartServices []*service `json:"upstart"`
-	CustomServices  []*customService `json:"custom"`
-	Responses	[]*response `json:"responses"`
+	UpstartServices []*Service `json:"upstart"`
+	CustomServices  []*CustomService `json:"custom"`
+	Responses	[]*Response `json:"responses"`
 }
 
-func readExpectationsFromJSON() []expectation {
-	var target []expectation
-	filename := "expectations.json"
+// ReadExpectationsFromJSON provides the expectation structs from external (JSON) DSL.
+func ReadExpectationsFromJSON(filename string) []Expectation {
+	var target []Expectation
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		fmt.Printf("Could not read data from file filename=%v, err=%v\n", filename, err)
