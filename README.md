@@ -1,9 +1,9 @@
 # Host Checker
 
 [![Build Status](https://semaphoreci.com/api/v1/milanaleksic/hostchecker/branches/master/badge.svg)](https://semaphoreci.com/milanaleksic/hostchecker)
-[![Docker Stars](https://img.shields.io/docker/stars/_/ubuntu.svg?maxAge=2592000)]()
-[![Docker Pulls](https://img.shields.io/docker/pulls/mashape/kong.svg?maxAge=2592000)]()
-[![Docker Automated buil](https://img.shields.io/docker/automated/jrottenberg/ffmpeg.svg?maxAge=2592000)]()
+[![Docker Stars](https://img.shields.io/docker/stars/milanaleksic/hostchecker.svg?maxAge=2592000)]()
+[![Docker Pulls](https://img.shields.io/docker/pulls/milanaleksic/hostchecker.svg?maxAge=2592000)]()
+[![Docker Automated buil](https://img.shields.io/docker/automated/milanaleksic/hostchecker.svg?maxAge=2592000)]()
 
 ## What it's all about
  
@@ -60,3 +60,11 @@ To run it, you have to have a file called `expectations.json` beside the app.
  // ... other servers to be checked
 ]
 ```
+
+## How to run from Docker:
+
+To run from within a docker container, you need to map local file into `expectations.json` inside the container, here is the magic:
+
+    docker run --rm \
+        -v ${PWD}/expectations.json:/go/src/app/expectations.json 
+        milanaleksic/hostchecker:<version>
