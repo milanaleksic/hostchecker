@@ -1,13 +1,9 @@
 # Host Checker
 
 [![Build Status](https://semaphoreci.com/api/v1/milanaleksic/hostchecker/branches/master/badge.svg)](https://semaphoreci.com/milanaleksic/hostchecker)
-
 [![Docker Stars](https://img.shields.io/docker/stars/_/ubuntu.svg?maxAge=2592000)]()
-
 [![Docker Pulls](https://img.shields.io/docker/pulls/mashape/kong.svg?maxAge=2592000)]()
-
 [![Docker Automated buil](https://img.shields.io/docker/automated/jrottenberg/ffmpeg.svg?maxAge=2592000)]()
-
 
 ## What it's all about
  

@@ -1,5 +1,6 @@
 PACKAGE := $(shell go list -e)
 APP_NAME = $(lastword $(subst /, ,$(PACKAGE)))
+MAIN_APP_DIR = cmd/main
 
 include gomakefiles/common.mk
 include gomakefiles/metalinter.mk
@@ -8,10 +9,8 @@ include gomakefiles/upx.mk
 SOURCES := $(shell find $(SOURCEDIR) -name '*.go' \
 	-not -path './vendor/*')
 
-$(APP_NAME): cmd/main/$(APP_NAME)
-
-cmd/main/$(APP_NAME): $(SOURCES)
-	cd cmd/main/ && go build -ldflags '-X main.Version=${VERSION}' -o ../../${APP_NAME}
+${FULL_APP_PATH}: $(SOURCES)
+	cd $(MAIN_APP_DIR) && go build -ldflags '-X main.Version=${VERSION}' -o ${APP_NAME}
 
 RELEASE_SOURCES := $(SOURCES)
 
