@@ -2,10 +2,11 @@ package hostchecker
 
 import (
 	"fmt"
+	"strings"
 )
 
-// Service defines an Upstart service expectation (how recently it should have been started for example)
-type Service struct {
+// UpstartService defines an Upstart service expectation (how recently it should have been started for example)
+type UpstartService struct {
 	Name             string `json:"name"`
 	User             string `json:"user"`
 	NewerThanSeconds int    `json:"newerThanSeconds"`
@@ -13,13 +14,48 @@ type Service struct {
 	Server           string
 }
 
-// CustomService defines a process expectation which will be identified via `ps` query for a certain regex
-type CustomService struct {
-	Service
-	Regex string `json:"regex"`
+func (s UpstartService) String() string {
+	return s.Name
 }
 
-func (s *Service) newFailure(format string, args ...interface{}) *Failure {
+// CheckExpectation verifies expectation sent as parameter. It will use context to execute remote commands
+func (s UpstartService) CheckExpectation(expec *Expectation, context *runningContext) (failures []Failure) {
+	app, err := context.executeRemoteCommand(fmt.Sprintf(`status %s`, s.Name))
+	if err != nil {
+		return append(failures, *s.newFailure(err.Error()))
+	} else if !serviceListOutputRegex.MatchString(app) {
+		return append(failures, *s.newFailure("Could not match output of service listing in '%s'", app))
+	}
+	found := serviceListOutputRegex.FindStringSubmatch(app)
+	pid := found[2]
+	if !strings.Contains(app, "running") {
+		return append(failures, *s.newFailure("Service not up"))
+	}
+
+	userAndServiceStartTime, err := context.executeRemoteCommand(fmt.Sprintf(`ps -p %s -o user,pid,etime | tail -1`, pid))
+	if err != nil {
+		return append(failures, *s.newFailure(err.Error()))
+	} else if !psOutputRegex.MatchString(userAndServiceStartTime) {
+		return append(failures, *s.newFailure("Could not match output of process analysis in '%s' (service down?)", userAndServiceStartTime))
+	}
+	found = psOutputRegex.FindStringSubmatch(userAndServiceStartTime)
+	user := found[1]
+	// (we know it already) pid := found[2]
+	elapsedTime := found[3]
+
+	if failure := s.checkUser(user); failure != nil {
+		failures = append(failures, *failure)
+	}
+	if failure := s.checkPorts(context, pid); failure != nil {
+		failures = append(failures, *failure)
+	}
+	if failure := s.checkOld(elapsedTime); failure != nil {
+		failures = append(failures, *failure)
+	}
+	return
+}
+
+func (s *UpstartService) newFailure(format string, args ...interface{}) *Failure {
 	return &Failure{
 		serviceName: s.Name,
 		server:      s.Server,
@@ -27,9 +63,9 @@ func (s *Service) newFailure(format string, args ...interface{}) *Failure {
 	}
 }
 
-func (s *Service) checkPorts(executeRemoteCommand func(string) (string, error), pid string) *Failure {
+func (s *UpstartService) checkPorts(context *runningContext, pid string) *Failure {
 	for _, port := range s.Ports {
-		pidHoldingPort, err := executeRemoteCommand(fmt.Sprintf(`lsof -nP | grep :%d | grep LISTEN | awk '{print $2}'`, port))
+		pidHoldingPort, err := context.executeRemoteCommand(fmt.Sprintf(`lsof -nP | grep :%d | grep LISTEN | awk '{print $2}'`, port))
 		if err != nil {
 			return s.newFailure(err.Error())
 		} else if pidHoldingPort == "" {
@@ -38,7 +74,7 @@ func (s *Service) checkPorts(executeRemoteCommand func(string) (string, error), 
 		if pidHoldingPort == pid {
 			continue
 		}
-		ppidHoldingPort, err := executeRemoteCommand(fmt.Sprintf(`cat /proc/%s/stat | awk '{print $4}'`, pidHoldingPort))
+		ppidHoldingPort, err := context.executeRemoteCommand(fmt.Sprintf(`cat /proc/%s/stat | awk '{print $4}'`, pidHoldingPort))
 		if err != nil {
 			return s.newFailure(err.Error())
 		} else if ppidHoldingPort != pid {
@@ -49,7 +85,7 @@ func (s *Service) checkPorts(executeRemoteCommand func(string) (string, error), 
 	return nil
 }
 
-func (s *Service) checkOld(elapsedTime string) *Failure {
+func (s *UpstartService) checkOld(elapsedTime string) *Failure {
 	if s.NewerThanSeconds != 0 {
 		timeInSeconds := extractTimeInSeconds(elapsedTime)
 		if timeInSeconds > s.NewerThanSeconds {
@@ -59,9 +95,40 @@ func (s *Service) checkOld(elapsedTime string) *Failure {
 	return nil
 }
 
-func (s *Service) checkUser(user string) *Failure {
+func (s *UpstartService) checkUser(user string) *Failure {
 	if user != s.User {
 		return s.newFailure("User is not correct for this service: %s != (expected) %s", user, s.User)
 	}
 	return nil
+}
+
+// CustomService defines a process expectation which will be identified via `ps` query for a certain regex
+type CustomService struct {
+	UpstartService
+	Regex string `json:"regex"`
+}
+
+// CheckExpectation verifies expectation sent as parameter. It will use context to execute remote commands
+func (s CustomService) CheckExpectation(expec *Expectation, context *runningContext) (failures []Failure) {
+	jettyUsernameAndStartTime, err := context.executeRemoteCommand(fmt.Sprintf(`ps ax -o user,pid,etime,command | grep '%s'`, s.Regex))
+	if err != nil {
+		return append(failures, *s.newFailure(err.Error()))
+	} else if !psOutputRegex.MatchString(jettyUsernameAndStartTime) {
+		return append(failures, *s.newFailure("Custom service has not been found on this server"))
+	}
+	found := psOutputRegex.FindStringSubmatch(jettyUsernameAndStartTime)
+	user := found[1]
+	pid := found[2]
+	elapsedTime := found[3]
+
+	if failure := s.checkUser(user); failure != nil {
+		failures = append(failures, *failure)
+	}
+	if failure := s.checkPorts(context, pid); failure != nil {
+		failures = append(failures, *failure)
+	}
+	if failure := s.checkOld(elapsedTime); failure != nil {
+		failures = append(failures, *failure)
+	}
+	return
 }
