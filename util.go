@@ -1,9 +1,9 @@
 package hostchecker
 
 import (
-	"strconv"
 	"log"
 	"regexp"
+	"strconv"
 )
 
 var (
@@ -11,7 +11,7 @@ var (
 )
 
 func extractTimeInSeconds(elapsedTime string) int {
-	toIntOrZero := func (s string) int {
+	toIntOrZero := func(s string) int {
 		if s == "" {
 			return 0
 		}
@@ -33,12 +33,10 @@ func extractTimeInSeconds(elapsedTime string) int {
 
 	var secondsTotal int
 	if days == "" {
-		secondsTotal = toIntOrZero(hours) * 60 * 60 + toIntOrZero(minutes) * 60 + toIntOrZero(seconds)
+		secondsTotal = toIntOrZero(hours)*60*60 + toIntOrZero(minutes)*60 + toIntOrZero(seconds)
 	} else {
-		secondsTotal = toIntOrZero(days) * 86400 + toIntOrZero(hours) * 60 * 60 + toIntOrZero(minutes) * 60 + toIntOrZero(seconds)
+		secondsTotal = toIntOrZero(days)*86400 + toIntOrZero(hours)*60*60 + toIntOrZero(minutes)*60 + toIntOrZero(seconds)
 	}
 	//fmt.Printf("%s is %d seconds\n", elapsedTime, secondsTotal)
 	return secondsTotal
 }
-
-

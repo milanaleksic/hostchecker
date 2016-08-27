@@ -6,7 +6,7 @@ import "fmt"
 type Response struct {
 	Name     string `json:"name"`
 	URL      string `json:"url"`
-	Codes    []int `json:"codes"`
+	Codes    []int  `json:"codes"`
 	Response string `json:"response"`
 	Server   string
 }
@@ -14,7 +14,7 @@ type Response struct {
 func (s *Response) newFailure(format string, args ...interface{}) *Failure {
 	return &Failure{
 		serviceName: s.Name,
-		server: s.Server,
-		msg: fmt.Sprintf(format, args...),
+		server:      s.Server,
+		msg:         fmt.Sprintf(format, args...),
 	}
 }

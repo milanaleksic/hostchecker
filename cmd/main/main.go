@@ -15,12 +15,12 @@ func main() {
 
 	var failures []hostchecker.Failure
 	for _, expectation := range expectations {
-		failures = append(failures, hostchecker.CheckServer(expectation)...)
+		failures = append(failures, expectation.CheckServer()...)
 	}
 	if len(failures) > 0 {
 		fmt.Println("\n\nFollowing violations are present:")
 		for index, failure := range failures {
-			fmt.Printf("%d. %s\n", index+1, failure.String())
+			fmt.Printf("%d. %s\n", index + 1, failure.String())
 		}
 		os.Exit(1)
 	} else {

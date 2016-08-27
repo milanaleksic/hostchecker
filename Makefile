@@ -17,7 +17,7 @@ RELEASE_SOURCES := $(SOURCES)
 include gomakefiles/semaphore.mk
 
 .PHONY: prepare
-prepare: prepare_metalinter prepare_upx prepare_github_release
+prepare: prepare_metalinter prepare_upx prepare_github_release prepare_githooks
 
 .PHONY: clean
 clean: clean_common

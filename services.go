@@ -1,15 +1,16 @@
 package hostchecker
 
 import (
-	"golang.org/x/crypto/ssh"
 	"fmt"
+
+	"golang.org/x/crypto/ssh"
 )
 
 // Service defines an Upstart service expectation (how recently it should have been started for example)
 type Service struct {
 	Name             string `json:"name"`
 	User             string `json:"user"`
-	NewerThanSeconds int `json:"newerThanSeconds"`
+	NewerThanSeconds int    `json:"newerThanSeconds"`
 	Ports            []int  `json:"ports"`
 	Server           string
 }
@@ -23,8 +24,8 @@ type CustomService struct {
 func (s *Service) newFailure(format string, args ...interface{}) *Failure {
 	return &Failure{
 		serviceName: s.Name,
-		server: s.Server,
-		msg: fmt.Sprintf(format, args...),
+		server:      s.Server,
+		msg:         fmt.Sprintf(format, args...),
 	}
 }
 
