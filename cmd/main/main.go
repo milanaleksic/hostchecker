@@ -1,10 +1,11 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
+
 	"github.com/milanaleksic/hostchecker"
-	"flag"
 )
 
 func main() {
@@ -20,7 +21,7 @@ func main() {
 	if len(failures) > 0 {
 		fmt.Println("\n\nFollowing violations are present:")
 		for index, failure := range failures {
-			fmt.Printf("%d. %s\n", index + 1, failure.String())
+			fmt.Printf("%d. %s\n", index+1, failure.String())
 		}
 		os.Exit(1)
 	} else {

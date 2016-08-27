@@ -2,8 +2,6 @@ package hostchecker
 
 import (
 	"fmt"
-
-	"golang.org/x/crypto/ssh"
 )
 
 // Service defines an Upstart service expectation (how recently it should have been started for example)
@@ -29,9 +27,9 @@ func (s *Service) newFailure(format string, args ...interface{}) *Failure {
 	}
 }
 
-func (s *Service) checkPorts(client *ssh.Client, pid string) *Failure {
+func (s *Service) checkPorts(executeRemoteCommand func(string) (string, error), pid string) *Failure {
 	for _, port := range s.Ports {
-		pidHoldingPort, err := executeRemoteCommand(client, fmt.Sprintf(`lsof -nP | grep :%d | grep LISTEN | awk '{print $2}'`, port))
+		pidHoldingPort, err := executeRemoteCommand(fmt.Sprintf(`lsof -nP | grep :%d | grep LISTEN | awk '{print $2}'`, port))
 		if err != nil {
 			return s.newFailure(err.Error())
 		} else if pidHoldingPort == "" {
@@ -40,7 +38,7 @@ func (s *Service) checkPorts(client *ssh.Client, pid string) *Failure {
 		if pidHoldingPort == pid {
 			continue
 		}
-		ppidHoldingPort, err := executeRemoteCommand(client, fmt.Sprintf(`cat /proc/%s/stat | awk '{print $4}'`, pidHoldingPort))
+		ppidHoldingPort, err := executeRemoteCommand(fmt.Sprintf(`cat /proc/%s/stat | awk '{print $4}'`, pidHoldingPort))
 		if err != nil {
 			return s.newFailure(err.Error())
 		} else if ppidHoldingPort != pid {

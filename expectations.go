@@ -83,8 +83,8 @@ func (expec *Expectation) CheckServer() (failures []Failure) {
 	return
 }
 
-func (e *Expectation) demandsSSH() bool {
-	return len(e.CustomServices) > 0 || len(e.UpstartServices) > 0
+func (expec *Expectation) demandsSSH() bool {
+	return len(expec.CustomServices) > 0 || len(expec.UpstartServices) > 0
 }
 
 func (expec *Expectation) checkUpstartServices() (failures []Failure) {
@@ -121,7 +121,7 @@ func (expec *Expectation) checkUpstartServices() (failures []Failure) {
 		if failure := upstartService.checkUser(user); failure != nil {
 			failures = append(failures, *failure)
 		}
-		if failure := upstartService.checkPorts(expec.sshClient, pid); failure != nil {
+		if failure := upstartService.checkPorts(expec.executeRemoteCommand, pid); failure != nil {
 			failures = append(failures, *failure)
 		}
 		if failure := upstartService.checkOld(elapsedTime); failure != nil {
@@ -151,7 +151,7 @@ func (expec *Expectation) checkCustomServices() (failures []Failure) {
 		if failure := customService.checkUser(user); failure != nil {
 			failures = append(failures, *failure)
 		}
-		if failure := customService.checkPorts(expec.sshClient, pid); failure != nil {
+		if failure := customService.checkPorts(expec.executeRemoteCommand, pid); failure != nil {
 			failures = append(failures, *failure)
 		}
 		if failure := customService.checkOld(elapsedTime); failure != nil {
