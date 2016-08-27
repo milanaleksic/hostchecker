@@ -4,10 +4,14 @@ import (
 	"fmt"
 	"os"
 	"github.com/milanaleksic/hostchecker"
+	"flag"
 )
 
 func main() {
-	expectations := hostchecker.ReadExpectationsFromJSON("expectations.json")
+	fileName := flag.String("filename", "expectations.json", "which expectation file should be used")
+	flag.Parse()
+
+	expectations := hostchecker.ReadExpectationsFromJSON(*fileName)
 
 	var failures []hostchecker.Failure
 	for _, expectation := range expectations {
