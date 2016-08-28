@@ -4,12 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"regexp"
-)
-
-var (
-	serviceListOutputRegex = regexp.MustCompile(`([a-z-]+)[^\d]*(\d+)$`)
-	psOutputRegex          = regexp.MustCompile(`([^\s]+)\s+([^\s]+)\s+([^\s]+)`)
 )
 
 // Verifiable represents a named "thing" that can be verified using an expectation and a running context
@@ -22,9 +16,9 @@ type Verifiable interface {
 // Since SSH is used, one needs to provide the username and password to access the remote server,
 // as well as definitions of expectations: services, expected URL responses etc
 type Expectation struct {
-	Server          string            `json:"server"`
-	User            string            `json:"user"`
-	Password        string            `json:"password"`
+	Server          string           `json:"server"`
+	User            string           `json:"user"`
+	Password        string           `json:"password"`
 	UpstartServices []UpstartService `json:"upstart"`
 	CustomServices  []CustomService  `json:"custom"`
 	Responses       []Response       `json:"responses"`
@@ -66,7 +60,14 @@ func (expec *Expectation) CheckServer() (failures []Failure) {
 	} else {
 		context = &runningContext{}
 	}
-	var verifiables []Verifiable
+	for _, verifiable := range expec.getAllVerifiables() {
+		fmt.Printf("Checking verifiable %s of type %T\n", verifiable.String(), verifiable)
+		failures = append(failures, verifiable.CheckExpectation(expec, context)...)
+	}
+	return
+}
+
+func (expec *Expectation) getAllVerifiables() (verifiables []Verifiable) {
 	for _, v := range expec.UpstartServices {
 		verifiables = append(verifiables, v)
 	}
@@ -75,10 +76,6 @@ func (expec *Expectation) CheckServer() (failures []Failure) {
 	}
 	for _, v := range expec.Responses {
 		verifiables = append(verifiables, v)
-	}
-	for _, verifiable := range verifiables {
-		fmt.Printf("Checking verifiable %s of type %T\n", verifiable.String(), verifiable)
-		failures = append(failures, verifiable.CheckExpectation(expec, context)...)
 	}
 	return
 }

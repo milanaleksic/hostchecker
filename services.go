@@ -2,7 +2,13 @@ package hostchecker
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
+)
+
+var (
+	serviceListOutputRegex = regexp.MustCompile(`([a-z-]+)[^\d]*(\d+)$`)
+	psOutputRegex          = regexp.MustCompile(`([^\s]+)\s+([^\s]+)\s+([^\s]+)`)
 )
 
 // UpstartService defines an Upstart service expectation (how recently it should have been started for example)
