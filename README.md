@@ -55,6 +55,16 @@ To run it, you have to have a file called `expectations.json` beside the app.
         // optionally, check what is the response from the server
         "response": "It looks like you are trying to access MongoDB over HTTP on the native driver port.\n"
       }
+      ],
+      // freestyle shell commands: they have to return 0 to succeed
+      "shell": [
+        {
+          "name": "Is Mongo operational?",
+          // which command do we want to execute remotely?
+          "cli": "mongo localhost/temp --eval \"print('searchOnNonExistingId='+db.mycollection.find({'_id':-1}).length())\" | grep searchOnNonExistingId",
+          // optionally, make sure string stdout output of the command is identical to sth we expect
+          "expected": "searchOnNonExistingId=0"
+        }
       ]
   },
  // ... other servers to be checked

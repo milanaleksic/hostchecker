@@ -22,6 +22,7 @@ type Expectation struct {
 	UpstartServices []UpstartService `json:"upstart"`
 	CustomServices  []CustomService  `json:"custom"`
 	Responses       []Response       `json:"responses"`
+	Shells          []Shell          `json:"shell"`
 }
 
 // ReadExpectationsFromJSON provides the expectation structs from external (JSON) DSL.
@@ -44,6 +45,9 @@ func ReadExpectationsFromJSON(filename string) []Expectation {
 			s.Server = e.Server
 		}
 		for _, r := range e.Responses {
+			r.Server = e.Server
+		}
+		for _, r := range e.Shells {
 			r.Server = e.Server
 		}
 	}
@@ -77,9 +81,12 @@ func (expec *Expectation) getAllVerifiables() (verifiables []Verifiable) {
 	for _, v := range expec.Responses {
 		verifiables = append(verifiables, v)
 	}
+	for _, v := range expec.Shells {
+		verifiables = append(verifiables, v)
+	}
 	return
 }
 
 func (expec *Expectation) demandsSSH() bool {
-	return len(expec.CustomServices) > 0 || len(expec.UpstartServices) > 0
+	return len(expec.CustomServices) > 0 || len(expec.UpstartServices) > 0 || len(expec.Shells) > 0
 }
