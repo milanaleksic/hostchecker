@@ -3,7 +3,7 @@
 [![Build Status](https://semaphoreci.com/api/v1/milanaleksic/hostchecker/branches/master/badge.svg)](https://semaphoreci.com/milanaleksic/hostchecker)
 [![Docker Stars](https://img.shields.io/docker/stars/milanaleksic/hostchecker.svg?maxAge=2592000)]()
 [![Docker Pulls](https://img.shields.io/docker/pulls/milanaleksic/hostchecker.svg?maxAge=2592000)]()
-[![Docker Automated buil](https://img.shields.io/docker/automated/milanaleksic/hostchecker.svg?maxAge=2592000)]()
+[![Docker Automated build](https://img.shields.io/docker/automated/milanaleksic/hostchecker.svg?maxAge=2592000)]()
 
 ## What it's all about
  
