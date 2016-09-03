@@ -1,7 +1,6 @@
 package hostchecker
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -12,15 +11,6 @@ type Response struct {
 	URL      string `json:"url"`
 	Codes    []int  `json:"codes"`
 	Response string `json:"response"`
-	Server   string
-}
-
-func (response *Response) newFailure(format string, args ...interface{}) *Failure {
-	return &Failure{
-		serviceName: response.Name,
-		server:      response.Server,
-		msg:         fmt.Sprintf(format, args...),
-	}
 }
 
 func (response Response) String() string {
@@ -28,10 +18,10 @@ func (response Response) String() string {
 }
 
 // CheckExpectation verifies expectation sent as parameter. It will not use context - no need for remote access
-func (response Response) CheckExpectation(expec *Expectation, context *runningContext) (failures []Failure) {
+func (response Response) CheckExpectation(context *runningContext) []error {
 	resp, err := http.Get(response.URL)
 	if err != nil {
-		return append(failures, *response.newFailure(err.Error()))
+		return only(err)
 	}
 
 	codeFound := false
@@ -42,19 +32,19 @@ func (response Response) CheckExpectation(expec *Expectation, context *runningCo
 		}
 	}
 	if !codeFound {
-		return append(failures, *response.newFailure("Code (%d) is not as expected (%+v)", resp.StatusCode, response.Codes))
+		return onlyF("Code (%d) is not as expected (%+v)", resp.StatusCode, response.Codes)
 	}
 
 	if response.Response != "" {
 		data, err := ioutil.ReadAll(resp.Body)
 		resp.Body.Close()
 		if err != nil {
-			return append(failures, *response.newFailure(err.Error()))
+			return only(err)
 		}
 
 		if string(data) != response.Response {
-			return append(failures, *response.newFailure("Response (%s) is not as expected (%+v)", data, response.Response))
+			return onlyF("Response (%s) is not as expected (%+v)", data, response.Response)
 		}
 	}
-	return
+	return nil
 }

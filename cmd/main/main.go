@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/milanaleksic/hostchecker"
+	"github.com/milanaleksic/hostchecker/failure"
 )
 
 func main() {
@@ -14,14 +15,14 @@ func main() {
 
 	expectations := hostchecker.ReadExpectationsFromJSON(*fileName)
 
-	var failures []hostchecker.Failure
+	var failures []*failure.Failure
 	for _, expectation := range expectations {
 		failures = append(failures, expectation.CheckServer()...)
 	}
 	if len(failures) > 0 {
 		fmt.Println("\n\nFollowing violations are present:")
-		for index, failure := range failures {
-			fmt.Printf("%d. %s\n", index+1, failure.String())
+		for index, fail := range failures {
+			fmt.Printf("%d. %s\n", index+1, fail.String())
 		}
 		os.Exit(1)
 	} else {

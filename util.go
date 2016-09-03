@@ -1,6 +1,7 @@
 package hostchecker
 
 import (
+	"fmt"
 	"log"
 	"regexp"
 	"strconv"
@@ -39,4 +40,12 @@ func extractTimeInSeconds(elapsedTime string) int {
 	}
 	//fmt.Printf("%s is %d seconds\n", elapsedTime, secondsTotal)
 	return secondsTotal
+}
+
+func only(err error) []error {
+	return []error{err}
+}
+
+func onlyF(format string, args ...interface{}) []error {
+	return only(fmt.Errorf(format, args))
 }

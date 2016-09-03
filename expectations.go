@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+
+	"github.com/milanaleksic/hostchecker/failure"
 )
 
 // Verifiable represents a named "thing" that can be verified using an expectation and a running context
 type Verifiable interface {
 	String() string
-	CheckExpectation(expec *Expectation, context *runningContext) (failures []Failure)
+	CheckExpectation(context *runningContext) []error
 }
 
 // Expectation is a definition of an expectation for a certain server.
@@ -37,25 +39,15 @@ func ReadExpectationsFromJSON(filename string) []Expectation {
 			fmt.Printf("Could not parse data from file filename=%v, err=%v\n", filename, err)
 		}
 	}
-	for _, e := range target {
-		for _, s := range e.UpstartServices {
-			s.Server = e.Server
-		}
-		for _, s := range e.CustomServices {
-			s.Server = e.Server
-		}
-		for _, r := range e.Responses {
-			r.Server = e.Server
-		}
-		for _, r := range e.Shells {
-			r.Server = e.Server
-		}
-	}
 	return target
 }
 
+func (expec *Expectation) String() string {
+	return expec.Server
+}
+
 // CheckServer is a host verifier entry point: for a known expectation, provide failures if they exist
-func (expec *Expectation) CheckServer() (failures []Failure) {
+func (expec *Expectation) CheckServer() (failures []*failure.Failure) {
 	fmt.Printf("\nChecking services on host %s\n", expec.Server)
 	var context *runningContext
 	if expec.demandsSSH() {
@@ -66,8 +58,11 @@ func (expec *Expectation) CheckServer() (failures []Failure) {
 	}
 	for _, verifiable := range expec.getAllVerifiables() {
 		fmt.Printf("Checking verifiable %s of type %T\n", verifiable.String(), verifiable)
-		failures = append(failures, verifiable.CheckExpectation(expec, context)...)
+		for _, f := range verifiable.CheckExpectation(context) {
+			failures = append(failures, failure.New(expec, verifiable, f))
+		}
 	}
+
 	return
 }
 
