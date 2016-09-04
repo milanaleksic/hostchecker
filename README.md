@@ -7,7 +7,9 @@
 
 ## What it's all about
  
-This tiny CLI app verification of services. 
+This tiny CLI app is meant to verify state of services in multiple nodes. 
+Properly used, it should be able to block execution of long-running Acceptance Tests on a cluster
+which wasn't properly set up (maybe Chef disn't restart services? Maybe there is not enough space on disk? ...)
 
 It was meant to block execution of tests if deployment wasn't a full success.
  
