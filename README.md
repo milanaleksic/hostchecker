@@ -9,10 +9,8 @@
  
 This tiny CLI app is meant to verify state of services in multiple nodes. 
 Properly used, it should be able to block execution of long-running Acceptance Tests on a cluster
-which wasn't properly set up (maybe Chef disn't restart services? Maybe there is not enough space on disk? ...)
+which wasn't properly set up (maybe Chef didn't restart services? Maybe there is not enough space on disk? ...)
 
-It was meant to block execution of tests if deployment wasn't a full success.
- 
 To run it, you have to have a file called `expectations.json` beside the app.
 
 ## expectations.json DSL
@@ -57,17 +55,17 @@ To run it, you have to have a file called `expectations.json` beside the app.
         // optionally, check what is the response from the server
         "response": "It looks like you are trying to access MongoDB over HTTP on the native driver port.\n"
       }
-      ],
-      // freestyle shell commands: they have to return 0 to succeed
-      "shell": [
-        {
-          "name": "Is Mongo operational?",
-          // which command do we want to execute remotely?
-          "cli": "mongo localhost/temp --eval \"print('searchOnNonExistingId='+db.mycollection.find({'_id':-1}).length())\" | grep searchOnNonExistingId",
-          // optionally, make sure string stdout output of the command is identical to sth we expect
-          "expected": "searchOnNonExistingId=0"
-        }
-      ]
+    ],
+    // freestyle shell commands: they have to return 0 to succeed
+    "shell": [
+      {
+        "name": "Is Mongo operational?",
+        // which command do we want to execute remotely?
+        "cli": "mongo localhost/temp --eval \"print('searchOnNonExistingId='+db.mycollection.find({'_id':-1}).length())\" | grep searchOnNonExistingId",
+        // optionally, make sure string stdout output of the command is identical to sth we expect
+        "expected": "searchOnNonExistingId=0"
+      }
+    ]
   },
  // ... other servers to be checked
 ]
