@@ -47,5 +47,5 @@ func only(err error) []error {
 }
 
 func onlyF(format string, args ...interface{}) []error {
-	return only(fmt.Errorf(format, args))
+	return only(fmt.Errorf(format, args...))
 }
