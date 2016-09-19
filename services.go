@@ -32,12 +32,12 @@ func (s UpstartService) CheckExpectation(context *runningContext) (errors []erro
 		return onlyF("Could not match output of service listing in '%s'", app)
 	}
 	found := serviceListOutputRegex.FindStringSubmatch(app)
-	pid := found[2]
+	servicePid := found[2]
 	if !strings.Contains(app, "running") {
 		return onlyF("Service not up")
 	}
 
-	userAndServiceStartTime, err := context.executeRemoteCommand(fmt.Sprintf(`ps -p %s -o user,pid,etime | tail -1`, pid))
+	userAndServiceStartTime, err := context.executeRemoteCommand(fmt.Sprintf(`ps -p %s -o user,pid,etime | tail -1`, servicePid))
 	if err != nil {
 		return only(err)
 	} else if !psOutputRegex.MatchString(userAndServiceStartTime) {
@@ -51,7 +51,7 @@ func (s UpstartService) CheckExpectation(context *runningContext) (errors []erro
 	if fail := s.checkUser(user); fail != nil {
 		errors = append(errors, fail)
 	}
-	if fail := s.checkPorts(context, pid); fail != nil {
+	if fail := s.checkPorts(context, servicePid); fail != nil {
 		errors = append(errors, fail)
 	}
 	if fail := s.checkOld(elapsedTime); fail != nil {
@@ -60,7 +60,7 @@ func (s UpstartService) CheckExpectation(context *runningContext) (errors []erro
 	return
 }
 
-func (s *UpstartService) checkPorts(context *runningContext, pid string) error {
+func (s *UpstartService) checkPorts(context *runningContext, servicePid string) error {
 	for _, port := range s.Ports {
 		pidHoldingPort, err := context.executeRemoteCommand(fmt.Sprintf(`lsof -nP | grep :%d | grep LISTEN | awk '{print $2}'`, port))
 		if err != nil {
@@ -68,15 +68,15 @@ func (s *UpstartService) checkPorts(context *runningContext, pid string) error {
 		} else if pidHoldingPort == "" {
 			return fmt.Errorf("Port %d is not being taken by any process", port)
 		}
-		if pidHoldingPort == pid {
+		if pidHoldingPort == servicePid {
 			continue
 		}
 		ppidHoldingPort, err := context.executeRemoteCommand(fmt.Sprintf(`cat /proc/%s/stat | awk '{print $4}'`, pidHoldingPort))
 		if err != nil {
 			return err
-		} else if ppidHoldingPort != pid {
+		} else if ppidHoldingPort != servicePid {
 			return fmt.Errorf("Port %d is being taken by the process PID=%s. Neither that PID nor its parent (%s) is of the service (%s)",
-				port, pidHoldingPort, ppidHoldingPort, pid)
+				port, pidHoldingPort, ppidHoldingPort, servicePid)
 		}
 	}
 	return nil
@@ -115,13 +115,13 @@ func (s CustomService) CheckExpectation(context *runningContext) (errors []error
 	}
 	found := psOutputRegex.FindStringSubmatch(jettyUsernameAndStartTime)
 	user := found[1]
-	pid := found[2]
+	servicePid := found[2]
 	elapsedTime := found[3]
 
 	if fail := s.checkUser(user); fail != nil {
 		errors = append(errors, fail)
 	}
-	if fail := s.checkPorts(context, pid); fail != nil {
+	if fail := s.checkPorts(context, servicePid); fail != nil {
 		errors = append(errors, fail)
 	}
 	if fail := s.checkOld(elapsedTime); fail != nil {
