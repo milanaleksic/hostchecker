@@ -3,7 +3,7 @@
 [![Build Status](https://semaphoreci.com/api/v1/milanaleksic/hostchecker/branches/master/badge.svg)](https://semaphoreci.com/milanaleksic/hostchecker)
 [![Docker Stars](https://img.shields.io/docker/stars/milanaleksic/hostchecker.svg?maxAge=2592000)]()
 [![Docker Pulls](https://img.shields.io/docker/pulls/milanaleksic/hostchecker.svg?maxAge=2592000)]()
-[![Docker Automated build](https://img.shields.io/docker/automated/milanaleksic/hostchecker.svg?maxAge=2592000)]()
+[![Docker Automated build](https://img.shields.io/docker/automated/milanaleksic/hostchecker.svg?maxAge=2592000)]() [![](https://images.microbadger.com/badges/image/milanaleksic/hostchecker.svg)](https://microbadger.com/images/milanaleksic/hostchecker "Get your own image badge on microbadger.com")
 
 ## What it's all about
  
@@ -78,3 +78,4 @@ To run from within a docker container, you need to map local file into `expectat
     docker run --rm \
         -v ${PWD}/expectations.json:/go/src/app/expectations.json 
         milanaleksic/hostchecker:<version>
+ 
